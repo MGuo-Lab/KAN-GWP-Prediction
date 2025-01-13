@@ -1,5 +1,6 @@
 # KAN-GWP-Prediction
-A repository for an interpretable Global Warming Potential(GWP) prediction framework integrating molecular descriptors, process data using Kolmogorov–Arnold Networks (KAN)
+A repository for an interpretable Global Warming Potential(GWP) prediction framework integrating molecular descriptors, process data using Kolmogorov–Arnold Networks (KAN).
+This repository consists of three main components: the dataset used for modeling, the modeling part that includes AI model training and development, and the part dedicated to XAI analysis.
 
 
 ![fig1](https://github.com/user-attachments/assets/da6428a0-9096-4a10-8f97-2daf1939c876)
