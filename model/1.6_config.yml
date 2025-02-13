@@ -1,0 +1,47 @@
+affine_trainable: false
+auto_save: true
+base_fun_name: silu
+ckpt_path: ./model
+device: mps
+grid: 10
+grid_eps: 0.02
+grid_range:
+- -1
+- 1
+k: 3
+mult_arity: 2
+round: 1
+sb_trainable: true
+sp_trainable: true
+state_id: 6
+symbolic.funs_name.0:
+- - cos
+  - '0'
+  - sin
+  - tanh
+  - sin
+  - sin
+  - '0'
+  - sin
+  - sin
+  - cos
+  - '0'
+  - sin
+  - sin
+  - '0'
+  - tanh
+  - cos
+  - tanh
+  - '0'
+  - x^4
+  - sin
+symbolic.funs_name.1:
+- - sqrt
+symbolic_enabled: true
+width:
+- - 20
+  - 0
+- - 1
+  - 0
+- - 1
+  - 0

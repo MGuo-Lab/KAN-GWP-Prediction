@@ -1,22 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Oct 23 19:39:22 2024
-
-@author: k23070952
-"""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 21 14:24:46 2024
-
-@author: k23070952
-"""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
 Created on Thu Oct 10 19:23:02 2024
 
 @author: k23070952
@@ -133,12 +117,12 @@ train_losses += results['train_loss']
 test_losses += results['test_loss']
 
 
-train_losses = []
-test_losses = []
-model_3 = model_2.refine(40)
-results = model_3.fit(dataset, opt="LBFGS", steps=20)
-train_losses += results['train_loss']
-test_losses += results['test_loss']
+# train_losses = []
+# test_losses = []
+# model_3 = model_2.refine(40)
+# results = model_3.fit(dataset, opt="LBFGS", steps=20)
+# train_losses += results['train_loss']
+# test_losses += results['test_loss']
 
 
 
@@ -157,21 +141,6 @@ def min_step_train(step):
     test_losses += results['test_loss']
     
     
-    model = model.refine(240)
-    results = model.fit(dataset, opt="LBFGS", steps=15, )
-    train_losses += results['train_loss']
-    test_losses += results['test_loss']
-    
-    # model = model.refine(50)
-    # results = model.fit(dataset, opt="LBFGS", steps=10)
-    # train_losses += results['train_loss']
-    # test_losses += results['test_loss']
-    
-    # model = model.refine(40)
-    # results = model.fit(dataset, opt="LBFGS", steps=30, lamb=0.002, lamb_entropy=2.)
-    # train_losses += results['train_loss']
-    # test_losses += results['test_loss']
-    
     
     plt.plot(train_losses)
     plt.plot(test_losses)
@@ -182,8 +151,8 @@ def min_step_train(step):
     return model, train_losses, test_losses
     
 best_model, best_train_losses, best_test_losses = min_step_train(min_step)
-best_min_loss = min(best_test_losses)  # 가장 작은 loss 값 찾기
-best_min_step = best_test_losses.index(best_min_loss)+1  # 가장 작은 loss가 발생한 스텝 (인덱스)
+best_min_loss = min(best_test_losses)  
+best_min_step = best_test_losses.index(best_min_loss)+1  
 print(f"최소 Test Loss: {best_min_loss}")
 print(f"최소 Test Loss가 발생한 스텝: {best_min_step}")
 
@@ -192,9 +161,9 @@ plt.show()
 
 
 # 예측 수행
-best_model = model_3.copy()
+best_model = model_2.copy()
 
-best_model = temp_model
+# best_model = temp_model
 
 with torch.no_grad():
     y_train_pred = best_model(dataset['train_input'])
@@ -247,17 +216,9 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-
-
 best_model.plot()
 plt.show()
 
-# pruned_model.plot(metric='forward_n')
-
-# plt.scatter(np.arange(21)+1, pruned_model.feature_score.cpu().detach().numpy())
-# plt.xlabel('rank of input features', fontsize=15)
-# plt.ylabel('feature attribution score', fontsize=15)
-# plt.show()
 
 pruned_model = best_model.prune_input(threshold=0.2)
 

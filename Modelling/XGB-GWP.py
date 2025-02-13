@@ -89,42 +89,18 @@ def drop_dup(df):
     print(f"groupby() 후 남은 행의 수: {len(grouped_df)}")
     return grouped_df
 
-'''유기 물질 제거'''
-inorganic_smiles_exceptions = ['CO2', '[U]', '[Al]', 'ClCl']
-
-# def filter_organic_smiles(df):
-#     organic_rows = []
-#     for index, row in df.iterrows():
-#         smiles = row['CanonicalSMILES']
-#         mol = Chem.MolFromSmiles(smiles)
-#         if not mol:
-#             continue
-
-#         if smiles not in inorganic_smiles_exceptions:
-#             for atom in mol.GetAtoms():
-#                 if atom.GetSymbol() == 'C':
-#                     organic_rows.append(row.to_dict())
-#                     break
-#     print('유기물질선별: ', len(df)-len(organic_rows), '개 삭제됨, 남은개수: ', len(organic_rows))
-#     return pd.DataFrame(organic_rows).reset_index(drop=True)
 
 
 def filtering(df):
-    # Q1 = df['Amount'].quantile(0.25)
-    # Q3 = df['Amount'].quantile(0.75)
-    # IQR = Q3 - Q1
-    # df = df[(df['Amount'] >= (Q1 - 1.5 * IQR)) & (df['Amount'] <= (Q3 + 1.5 * IQR))]
-    # df = df[df['Amount'] > 0]
     print(len(df))
-    # 데이터 크기(Amount 값의 크기)에 따라 내림차순 정렬
+    
     df = df.sort_values(by='Amount', ascending=False)
     
-    # 상위 17% 제외 (즉, 하위 83% 선택)
-    threshold_index = int(len(df) * 0.03)  # 상위 17% 인덱스 계산
-    df_filtered = df.iloc[threshold_index:]  # 상위 17% 제외한 나머지
+
+    threshold_index = int(len(df) * 0.03) 
+    df_filtered = df.iloc[threshold_index:]  
     df_filtered = df_filtered[df_filtered['Amount'] > 0]
     print(f"1. 스케일링 후 {len(df)-len(df_filtered)}개 삭제됨, 남은개수: , {len(df_filtered)}")
-    # df_filtered = df_filtered[df_filtered['Amount'] < 147266]
     
     # Remove rows where 'Process Name' contains 'market' (case-insensitive)
     df_del_market = df_filtered[~df_filtered['Process Name'].str.contains('market', case=False, na=False)]
@@ -273,33 +249,24 @@ print(f'Clearned feature number: {len(modified_df.columns)}')
 X = modified_df.drop(['CanonicalSMILES', 'Amount'], axis=1)
 y = modified_df['Amount']
 
-# n_var = len(input_vars)
+
 
 mordred_feature = pd.read_pickle('/Users/k23070952/Desktop/LCA/1. Code/241118_X_test_selected.pkl').columns
-# 2. X와 mordred_feature의 공통 컬럼 찾기
 common_columns = X.columns.intersection(mordred_feature)
-
-# 3. X에서 공통 컬럼만 추출
 X_filtered = X[common_columns]
 
-# 1. L과 T 컬럼 추출
-# L_columns = [col for col in mordred_added_df.columns if 'location_embed_' in col]
-# T_columns = [col for col in mordred_added_df.columns if 'process_embed' in col]
-# d_columns = [col for col in mordred_added_df.columns if 'Name_embed_' in col]
 
-# 1. L, T, d 컬럼 추출
 L_columns = [col for col in mordred_added_df.columns if 'location_embed_' in col]
 T_columns = [col for col in mordred_added_df.columns if 'process_embed' in col]
 d_columns = [col for col in mordred_added_df.columns if 'Name_embed_' in col]
 chemical_columns = [col for col in X_filtered.columns]  # Chemical descriptors
 
 
-# 2. L과 T 컬럼의 데이터 추출
+# Reset index to ensure alignment
 L_data = mordred_added_df[L_columns]
 T_data = mordred_added_df[T_columns]
 d_data = mordred_added_df[d_columns]
-# 3. X_filtered와 L, T 데이터를 결합
-# Reset index to ensure alignment
+
 
 # Concatenate along the columns axis
 X_final = pd.concat([X_filtered, L_data, T_data, d_data], axis=1)
@@ -332,79 +299,6 @@ import xgboost as xgb
 
 # Base model
 model = xgb.XGBRegressor(objective='reg:squarederror', tree_method='hist', random_state=1004)
-
-# # 리스트 초기화
-# scores = []
-
-# # 피처 개수별로 교차 검증
-# for n_features in tqdm(range(1, 157)):  # 1 to 157 features
-#     rfe = RFE(estimator=model, n_features_to_select=n_features, step=1)
-#     X_train_rfe = rfe.fit_transform(X_train, y_train)
-    
-#     # 각 폴드의 스코어를 저장
-#     fold_scores = cross_val_score(model, X_train_rfe, y_train, cv=20, scoring='neg_mean_squared_error')
-#     scores.append((n_features, fold_scores))
-
-# # 스코어 데이터 변환
-# feature_counts = [item[0] for item in scores]
-# fold_scores = [item[1] for item in scores]  # 각 피처 개수에서의 폴드별 스코어
-
-# # 시각화
-# plt.figure(figsize=(10, 6))
-# for i, fold_score in enumerate(fold_scores):
-#     plt.scatter([feature_counts[i]] * len(fold_score), fold_score, alpha=0.5)  # 각 피처 개수에 대한 분산 표시
-
-# plt.xlabel("Number of Features")
-# plt.ylabel("Cross-Validation Score (neg MSE)")
-# plt.title("Feature Count vs Cross-Validation Scores")
-# plt.show()
-
-
-
-# plt.figure(figsize=(16, 9), dpi = 1000)  # 16:9 종횡비로 그래프 크기 설정
-# plt.subplots_adjust(bottom=0.2)
-
-# plt.boxplot(fold_scores, positions=feature_counts, widths=0.6, patch_artist=True,
-#             boxprops=dict(facecolor='steelblue', color='black', alpha=0.85),
-#             medianprops=dict(color='black'),
-#             showmeans=False,
-#             flierprops=dict(marker=''))
-
-# mean_values = [np.mean(scores) for scores in fold_scores]
-# plt.plot(feature_counts, mean_values, color='midnightblue', marker='o', linestyle='-', linewidth=2.5, markersize=4,
-#          markerfacecolor="navy", markeredgecolor="black")
-
-# # x축을 5 단위로 설정
-# plt.xticks(ticks=range(0, max(feature_counts)+1, 5), labels=range(0, max(feature_counts)+1, 5))
-
-
-# plt.xlabel("Number of Features")
-# plt.ylabel("Cross-Validation Score (neg MSE)")
-# plt.title("Feature Count vs Cross-Validation Scores")
-# plt.show()
-
-
-
-# '''선택된 feature수로 feature set 확보'''
-# rfe = RFE(estimator=model, n_features_to_select=54, step=1)
-# X_train_rfe = rfe.fit_transform(X_train, y_train)
-
-# # 각 폴드의 스코어를 저장
-# fold_scores = cross_val_score(model, X_train_rfe, y_train, cv=20, scoring='neg_mean_squared_error')
-# # scores.append((n_features, fold_scores))
-# rfe.support_
-
-# # np.save('/Users/k23070952/Desktop/LCA/1. Code/selected_features_54.npy', rfe.support_)
-
-
-
-# # loaded_mask = np.load('selected_features_30.npy')
-
-
-# X_train_selected = X_train.values[:, rfe.support_]
-# X_test_selected = X_test.values[:, rfe.support_]
-
-
 
 # Initialize the start time for tracking iterations
 global iteration_start_time
@@ -489,28 +383,21 @@ import matplotlib.pyplot as plt
 
 
 
-
-
-# 1. "Top 5 + Others" 계산 함수
 def calculate_top5_and_others(shap_df, group_columns, group_name, top_n=3):
     """
     특정 그룹의 Top 5 feature와 나머지 feature의 합을 계산하여 반환
     """
-    group_shap_values = shap_df[group_columns].abs().mean(axis=0)  # 절대값 평균
+    group_shap_values = shap_df[group_columns].abs().mean(axis=0) 
     top_features = group_shap_values.sort_values(ascending=False).head(top_n)  # Top N
-    # other_value = group_shap_values.sum() - top_features.sum()  # 나머지 합
-    # top_features[f"Other ({group_name})"] = other_value  # "Other" 추가
     return top_features
 
 shap_df = pd.DataFrame(shap_values.values, columns=X_train.columns)
 
-# 각 그룹에 해당하는 feature 컬럼
 L_columns = [col for col in shap_df.columns if 'location_embed_' in col]
 T_columns = [col for col in shap_df.columns if 'process_embed' in col]
 d_columns = [col for col in shap_df.columns if 'Name_embed_' in col]
 chemical_columns = [col for col in shap_df.columns if col in X_filtered.columns]
 
-# 3. 각 그룹별 Top 5 + Others 계산
 results = []
 for group_name, group_columns in {
     "Process location": L_columns,
@@ -521,54 +408,49 @@ for group_name, group_columns in {
     group_result = calculate_top5_and_others(shap_df, group_columns, group_name, top_n=5)
     results.append(group_result)
 
-# 4. 결과를 하나의 DataFrame으로 통합
 plot_data = pd.concat(results, axis=1)
 
 
 
-# 1. SHAP 값을 퍼센트로 변환 (전체 합 기준)
-total_sum = plot_data.sum().sum()  # 모든 그룹의 SHAP 값 합계
-df_percent = plot_data / total_sum * 100  # 전체 합 기준으로 퍼센트 계산
 
-# Process location 관련 인덱스 필터링
+total_sum = plot_data.sum().sum()  
+df_percent = plot_data / total_sum * 100  
+
+
 filtered_index = ~df_percent.index.str.contains("location_embed_|Other \(Process location\)")
 
-# 필터링된 데이터프레임 생성
-df_percent_filtered = df_percent.loc[filtered_index].drop(columns=[0])  # 열도 제거
+
+df_percent_filtered = df_percent.loc[filtered_index].drop(columns=[0])  
 
 
-# 3. 방사형 플롯 데이터 준비
-categories = df_percent_filtered.index.tolist()  # Feature 이름 리스트
+categories = df_percent_filtered.index.tolist()  
 num_categories = len(categories)
 
 angles = [n / float(num_categories) * 2 * np.pi for n in range(num_categories)]
-angles += angles[:1]  # 닫힌 도형을 위해 첫 값을 마지막에 추가
+angles += angles[:1]  
 
-# 4. 방사형 플롯 생성
-fig, ax = plt.subplots(figsize=(12, 12), subplot_kw={'polar': True})  # 그림 크기 설정
 
-# 각 그룹별 데이터 플롯
+fig, ax = plt.subplots(figsize=(12, 12), subplot_kw={'polar': True}) 
+
+
 for group, label in zip(
     df_percent_filtered.columns,
     ["Process description", "Process title", "Chemical descriptors"],
-):  # Process location 제외
+):  
     values = df_percent_filtered[group].tolist()
-    values += values[:1]  # 첫 값을 마지막에 추가하여 닫힌 도형 생성
-    ax.plot(angles, values, linewidth=2, label=label)  # 그룹 이름을 Legend에 추가
+    values += values[:1]  
+    ax.plot(angles, values, linewidth=2, label=label)  
     ax.fill(angles, values, alpha=0.25)
 
-# 5. 방사형 플롯 설정
 ax.set_xticks(angles[:-1])
-ax.set_xticklabels(categories, fontsize=12, rotation=45, ha='right')  # 라벨 회전 및 정렬
-ax.set_ylim(0, 20)  # Y축 범위를 0~20%로 설정
-ax.set_yticks(np.linspace(0, 20, 5))  # 퍼센트(%) 기준으로 눈금 설정
-ax.set_yticklabels([f"{int(i)}%" for i in np.linspace(0, 20, 5)])  # 퍼센트 단위로 표시
+ax.set_xticklabels(categories, fontsize=12, rotation=45, ha='right')  
+ax.set_ylim(0, 20)  
+ax.set_yticks(np.linspace(0, 20, 5))  
+ax.set_yticklabels([f"{int(i)}%" for i in np.linspace(0, 20, 5)]) 
 ax.set_title("Top 5 SHAP Features with Others by Group (Global %, Max 20%)", size=20, pad=20)
 
-# Legend 수정: 그룹 이름을 올바르게 표시
 ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), title="Feature Groups")
 
-# 플롯 표시
 plt.tight_layout()
 plt.show()
 
