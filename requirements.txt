@@ -187,8 +187,13 @@ notebook==7.2.2
 notebook_shim==0.2.4
 numba==0.60.0
 numexpr==2.10.1
-numpy==1.26.4
-numpydoc @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_69xghc3i3n/croot/numpydoc_1718279166747/work
+numpy
+pandas
+torch
+scikit-learn
+optuna
+matplotlib
+kan
 omegaconf==2.3.0
 open-clip-torch==2.24.0
 openai==1.51.1
@@ -196,7 +201,6 @@ opencv-python-headless==4.10.0.84
 openpyxl==3.1.5
 opt_einsum==3.4.0
 optree==0.13.0
-optuna @ git+https://github.com/optuna/optuna@c014b9d01131cfffd3a7b1ef6b323373668c9ac9
 orjson==3.10.11
 overrides==7.7.0
 packaging @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_81ri4yfpjw/croot/packaging_1720101866878/work
